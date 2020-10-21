@@ -2,7 +2,7 @@ package com.ohmyspark.ksia.chapter03.zmart
 
 import java.util.Properties
 
-import com.ohmyspark.ksia.chapter03.zmart.Entity.RawPurchase
+import com.ohmyspark.ksia.model.Transaction
 import com.ohmyspark.ksia.serialize.json.GenericJsonSerializer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.scalacheck.Gen
@@ -16,13 +16,13 @@ object ZMartGenerators {
 
   val cardNumberGen: Gen[String] = Gen.listOfN(16, Gen.numChar).map(_.mkString)
 
-  val entryGen: Gen[(RawPurchase, Int)] = for {
+  val entryGen: Gen[(Transaction, Int)] = for {
     user <- userGen
     card <- cardNumberGen
     sleep <- Gen.chooseNum(100, 1000)
-  } yield (RawPurchase(user, card), sleep)
+  } yield (Transaction(user, card), sleep)
 
-  val entryStreamGen: Gen[LazyList[(RawPurchase, Int)]] =
+  val entryStreamGen: Gen[LazyList[(Transaction, Int)]] =
     Gen.infiniteLazyList(entryGen)
 
   val props: Properties = {
@@ -36,7 +36,7 @@ object ZMartGenerators {
     )
     p.put(
       "value.serializer",
-      classOf[GenericJsonSerializer[RawPurchase]]
+      classOf[GenericJsonSerializer[Transaction]]
     )
     p.put("acks", "1")
 
@@ -45,7 +45,7 @@ object ZMartGenerators {
 
   def main(args: Array[String]): Unit = {
 
-    val producer = new KafkaProducer[String, RawPurchase](props)
+    val producer = new KafkaProducer[String, Transaction](props)
 
     for {
       (purchase, sleep) <-

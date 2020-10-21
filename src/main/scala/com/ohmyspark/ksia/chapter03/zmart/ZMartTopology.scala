@@ -2,14 +2,11 @@ package com.ohmyspark.ksia.chapter03.zmart
 
 import java.util.Properties
 
-import com.ohmyspark.ksia.chapter03.zmart.Entity.{Purchase, RawPurchase}
+import com.ohmyspark.ksia.model.{Purchase, PurchasePattern, Reward, Transaction}
 import com.ohmyspark.ksia.serialize.json.GenericJsonSerde
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.kstream.Printed
-import org.apache.kafka.streams.scala.ImplicitConversions._
-import org.apache.kafka.streams.scala.Serdes._
 import org.apache.kafka.streams.scala.StreamsBuilder
-import org.apache.kafka.streams.scala.kstream.KStream
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 object ZMartTopology extends App {
@@ -29,20 +26,30 @@ object ZMartTopology extends App {
     p
   }
 
-  implicit val rawPurchaseSerde: Serde[RawPurchase] =
-    new GenericJsonSerde[RawPurchase]()
+  implicit val rawPurchaseSerde: Serde[Transaction] =
+    new GenericJsonSerde[Transaction]()
   implicit val purchaseSerde: Serde[Purchase] =
     new GenericJsonSerde[Purchase]()
+  implicit val purchasePatternSerde: Serde[PurchasePattern] =
+    new GenericJsonSerde[PurchasePattern]()
+  implicit val rewardSerde: Serde[Reward] = new GenericJsonSerde[Reward]()
 
   val builder = new StreamsBuilder()
 
-  val rawPurchaseStream = builder.stream[String, RawPurchase]("transactions")
-  val purchaseStream: KStream[String, Purchase] =
-    rawPurchaseStream.mapValues(_.maskCard)
+  val rawPurchaseStream = builder.stream[String, Transaction]("transactions")
+
+  val purchaseStream = rawPurchaseStream.mapValues(_.toPurchase)
+  val purchasePatternStream = purchaseStream.mapValues(_.toPurchasePattern)
+  val rewardStream = purchaseStream.mapValues(_.toReward)
 
   rawPurchaseStream.print(Printed.toSysOut().withLabel("src"))
   purchaseStream.print(Printed.toSysOut().withLabel("prc"))
+  purchasePatternStream.print(Printed.toSysOut().withLabel("pat"))
+  rewardStream.print(Printed.toSysOut().withLabel("rew"))
+
   purchaseStream.to("purchase")
+  purchasePatternStream.to("pattern")
+  rewardStream.to("reward")
 
   val streams = new KafkaStreams(builder.build(), props)
 
