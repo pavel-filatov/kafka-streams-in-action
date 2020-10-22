@@ -7,6 +7,8 @@ import com.ohmyspark.ksia.serialize.json.GenericJsonSerde
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.kstream.Printed
 import org.apache.kafka.streams.scala.StreamsBuilder
+import org.apache.kafka.streams.scala.ImplicitConversions._
+import org.apache.kafka.streams.scala.Serdes._
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
 object ZMartTopology extends App {

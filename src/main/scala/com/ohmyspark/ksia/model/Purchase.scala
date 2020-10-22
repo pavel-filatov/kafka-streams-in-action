@@ -1,7 +1,5 @@
 package com.ohmyspark.ksia.model
 
-import java.sql.Date
-
 case class Purchase(
     firstName: String,
     lastName: String,
@@ -11,7 +9,7 @@ case class Purchase(
     department: String,
     quantity: Int,
     price: Double,
-    date: Date,
+    date: String,
     zipCode: String,
     storeId: String
 ) {

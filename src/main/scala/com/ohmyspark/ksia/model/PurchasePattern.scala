@@ -1,11 +1,9 @@
 package com.ohmyspark.ksia.model
 
-import java.sql.Date
-
 case class PurchasePattern(
     zipCode: String,
     item: String,
-    date: Date,
+    date: String,
     amount: Double
 )
 

@@ -12,7 +12,7 @@ case class Transaction(
     employeeId: String,
     quantity: Int,
     price: Double,
-    date: Date,
+    date: String,
     zipCode: String,
     storeId: String
 ) {

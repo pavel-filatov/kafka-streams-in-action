@@ -2,28 +2,14 @@ package com.ohmyspark.ksia.chapter03.zmart
 
 import java.util.Properties
 
+import com.ohmyspark.ksia.gen.TransactionGen
 import com.ohmyspark.ksia.model.Transaction
 import com.ohmyspark.ksia.serialize.json.GenericJsonSerializer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 
-object ZMartGenerators {
-
-  val usersGen: Gen[List[String]] =
-    Gen.listOfN(3, Gen.uuid).map(_.map(_.toString))
-  val userGen: Gen[String] = usersGen.flatMap(us => Gen.oneOf(us))
-
-  val cardNumberGen: Gen[String] = Gen.listOfN(16, Gen.numChar).map(_.mkString)
-
-  val entryGen: Gen[(Transaction, Int)] = for {
-    user <- userGen
-    card <- cardNumberGen
-    sleep <- Gen.chooseNum(100, 1000)
-  } yield (Transaction(user, card), sleep)
-
-  val entryStreamGen: Gen[LazyList[(Transaction, Int)]] =
-    Gen.infiniteLazyList(entryGen)
+object ZMartProducer {
 
   val props: Properties = {
     val p = new Properties()
@@ -48,10 +34,10 @@ object ZMartGenerators {
     val producer = new KafkaProducer[String, Transaction](props)
 
     for {
-      (purchase, sleep) <-
-        entryStreamGen.pureApply(Gen.Parameters.default, Seed(100))
+      (transaction, sleep) <-
+        TransactionGen.genInfiniteTransactionsStream.pureApply(Gen.Parameters.default, Seed(100))
     } {
-      val record = new ProducerRecord("transactions", purchase.user, purchase)
+      val record = new ProducerRecord("transactions", transaction.customerId, transaction)
       producer.send(record)
       Thread.sleep(sleep)
     }
