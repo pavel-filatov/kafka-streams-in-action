@@ -1,5 +1,8 @@
 package com.ohmyspark.ksia.gen
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import com.ohmyspark.ksia.model.Transaction
 import org.scalacheck.Gen
 
@@ -17,7 +20,7 @@ object TransactionGen {
       (item, price, department) <- ItemDepartmentGen.genItemDepartment
       employeeId <- Gen.chooseNum(1, 100).map(_.toString)
       quantity <- Gen.chooseNum(1, 10)
-      date = "2020-10-23"
+      date = new SimpleDateFormat("yyyy-MM-dd").parse("2020-10-22")
       zipCode <- Gen.listOfN(5, Gen.numChar).map(_.mkString)
       storeShortId <- Gen.listOfN(2, Gen.numChar).map(_.mkString)
       storeId = zipCode + storeShortId

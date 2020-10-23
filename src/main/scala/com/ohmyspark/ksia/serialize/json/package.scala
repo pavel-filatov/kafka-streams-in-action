@@ -1,13 +1,17 @@
 package com.ohmyspark.ksia.serialize
 
+import java.text.SimpleDateFormat
+
 import net.liftweb.json._
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 
 package object json {
 
-  class GenericJsonSerializer[A] extends Serializer[A] {
-    implicit val formats: Formats = DefaultFormats
+  implicit val formats: Formats = new DefaultFormats {
+    override def dateFormatter: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+  }
 
+  class GenericJsonSerializer[A] extends Serializer[A] {
     override def serialize(topic: String, data: A): Array[Byte] = {
       compactRender(Extraction.decompose(data)).toCharArray.map(_.toByte)
     }
@@ -15,7 +19,6 @@ package object json {
 
   class GenericJsonDeserializer[A]()(implicit m: Manifest[A])
       extends Deserializer[A] {
-    implicit val formats: Formats = DefaultFormats
     def deserialize(topic: String, data: Array[Byte]): A = {
       parse(data.map(_.toChar).mkString).extract[A]
     }
